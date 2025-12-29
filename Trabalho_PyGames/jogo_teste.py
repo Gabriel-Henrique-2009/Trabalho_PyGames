@@ -30,4 +30,18 @@ while rodando:
     pygame.display.update()
 
     pygame.time.Clock().tick(60)
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
 pygame.quit()

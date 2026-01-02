@@ -1,20 +1,28 @@
 import pygame
 
-# att 2
+# att 3
 pygame.init()
 
-botao_menu_teste = pygame.Rect(500, 350, 200, 100)
+botao_menu_teste = pygame.Rect(513  , 459, 190, 100)
+
 cor_botao_menu_teste = (255, 0, 0)
 tela = pygame.display.set_mode((1200, 800))
 clock = pygame.time.Clock()
 rodando = True
 
 
-imagem = pygame.image.load("Trabalho_PyGames/Gemini_Generated_Image_pgro94pgro94pgro.png")
+imagem = pygame.image.load("unnamed.jpg")
+imagem = pygame.transform.scale(imagem, (1200, 800))
 imagem = imagem.convert()
-color = imagem.get_at((0,0))
-imagem.set_colorkey(color)
+#essa linha tava conflitando com a imagem 
+#essa tbm 
 
+font = pygame.font.Font("Silkscreen-Regular.ttf", 36)
+
+texto_surface_texto_frente = font.render("Jogar", True, (215, 238, 244))
+texto_sombra = font.render("Jogar", True, (80, 123, 70)) # efeito de sombra igual tilulo 
+texto_rect = texto_surface_texto_frente.get_rect(topleft=(540, 480)) #certinho rs
+texto_rect_sombra = texto_sombra.get_rect(topleft=(543,483))
 
 while rodando:
     for evento in pygame.event.get():
@@ -35,7 +43,12 @@ while rodando:
 
     tela.fill((200, 200, 200))
     tela.blit(imagem, (0,0))
-    pygame.draw.rect(tela, cor_botao_menu_teste, botao_menu_teste)
+    pygame.draw.rect(tela, cor_botao_menu_teste, botao_menu_teste) #Man se quiser ver o texto sem o sistema de colisão
+    #do mouse é só tirar essa linha 
+    # e o hitbox funciona ainda rs
+    tela.blit(texto_sombra, texto_rect_sombra) 
+    tela.blit(texto_surface_texto_frente, texto_rect)
+    
     pygame.display.update()
 
     clock.tick(60)

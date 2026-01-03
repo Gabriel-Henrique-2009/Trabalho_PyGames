@@ -3,9 +3,9 @@ import pygame
 # att 3
 pygame.init()
 
-botao_menu_teste = pygame.Rect(513  , 459, 190, 100)
+botao_menu_teste = pygame.Rect(435, 453, 362, 110)
 
-cor_botao_menu_teste = (255, 0, 0)
+cor_botao_menu_teste = (0, 153, 102)
 tela = pygame.display.set_mode((1200, 800))
 clock = pygame.time.Clock()
 rodando = True
@@ -32,14 +32,9 @@ while rodando:
          if botao_menu_teste.collidepoint(evento.pos): # o collidepoint verifica se o mouse está sobre o botão.
              #ele tbm evita ter que ficar fazendo conta da posição do mouse :) 
              print("botão teste foi clicado , iniciar o game")
+            # Eduardo, aqui que a gnt vai ter que fazer o nosso jogo msm, né? eu coloquei só o botão de jgr. Acho bom fazer o jogo em um outro arquivo e depois, só passar pra cá
 
     mouse_pos = pygame.mouse.get_pos()
-
-    if botao_menu_teste.collidepoint(mouse_pos):
-        cor_botao_menu_teste = (0, 255, 0)
-    else:
-        cor_botao_menu_teste = (255, 0, 0)
-
 
     tela.fill((200, 200, 200))
     tela.blit(imagem, (0,0))

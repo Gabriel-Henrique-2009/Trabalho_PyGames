@@ -29,26 +29,24 @@ imagem_fundo = pygame.image.load("Gemini_Generated_Image_pgro94pgro94pgro.png")
 imagem_fundo = pygame.transform.scale(imagem_fundo, (1200, 800))
 
 imagem_alexandre_original = pygame.image.load("imagem-alexandre.png")
-imagem_alexandre = pygame.transform.scale(imagem_alexandre_original, (60, 60))
+imagem_alexandre = pygame.transform.scale(imagem_alexandre_original, (267, 300))
 imagem_alexandre_virado = pygame.transform.flip(imagem_alexandre, True, False)
 
 imagem_robo_original = pygame.image.load("imagem-robo.png")
-imagem_robo = pygame.transform.scale(imagem_robo_original, (60, 60))
+imagem_robo = pygame.transform.scale(imagem_robo_original, (267, 300))
 
 player_rect = imagem_alexandre.get_rect()
 enemy_rect = imagem_robo.get_rect()
 
-# Posicionamento inicial na base da tela
 player_rect.x = 100
 player_rect.y = 800 - player_rect.height 
 
 enemy_rect.x = 800
 enemy_rect.y = 800 - enemy_rect.height
 
-# Variáveis de física
 velocidade = 5
 gravidade = 0.5
-velocidade_pulo = -10
+velocidade_pulo = -15     
 player_velocidade_y = 0
 pulando = False
 virado_para_esquerda = False
@@ -84,10 +82,10 @@ while rodando:
         teclas = pygame.key.get_pressed()
         
         # Movimentação lateral e inversão da imagem
-        if teclas[pygame.K_LEFT]:
+        if teclas[pygame.K_a]:
             player_rect.x -= velocidade
             virado_para_esquerda = True
-        if teclas[pygame.K_RIGHT]:
+        if teclas[pygame.K_d]:
             player_rect.x += velocidade
             virado_para_esquerda = False
 

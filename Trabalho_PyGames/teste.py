@@ -64,7 +64,6 @@ while rodando:
                 estado_jogo = "JOGANDO"
         
         if evento.type == pygame.KEYDOWN:
-            # Pulo com a barra de espaço
             if evento.key == pygame.K_SPACE and not pulando and estado_jogo == "JOGANDO":
                 player_velocidade_y = velocidade_pulo
                 pulando = True
@@ -81,7 +80,6 @@ while rodando:
     elif estado_jogo == "JOGANDO":
         teclas = pygame.key.get_pressed()
         
-        # Movimentação lateral e inversão da imagem
         if teclas[pygame.K_a]:
             player_rect.x -= velocidade
             virado_para_esquerda = True
@@ -89,22 +87,18 @@ while rodando:
             player_rect.x += velocidade
             virado_para_esquerda = False
 
-        # Lógica de Gravidade e Pulo
         player_velocidade_y += gravidade
         player_rect.y += player_velocidade_y
 
-        # Colisão com o "chão" (base da imagem)
         if player_rect.y >= 800 - player_rect.height:
             player_rect.y = 800 - player_rect.height
             pulando = False
             player_velocidade_y = 0
 
-        # Colisão com o Robo (Inimigo)
         if player_rect.colliderect(enemy_rect):
             print("Fim de jogo")
             rodando = False
 
-        # Desenho dos elementos
         tela.blit(imagem_fundo, (0, 0))
         
         if virado_para_esquerda:

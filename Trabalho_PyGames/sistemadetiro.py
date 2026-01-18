@@ -16,6 +16,22 @@ imagem_tiro = pygame.image.load("projetil-teste.png").convert_alpha() #tirar o f
 imagem_tiro = pygame.transform.scale(imagem_tiro, (25, 25))
 vida_teste_5 = 0
 
+
+#sistema de atk do boss 
+armazenar_tiro_boss = []
+velocidade_tiro_boss = 7
+imagem_atk_chatgpt = pygame.image.load("chatgptlogo.png").convert_alpha()
+imagem_atk_chatgpt = pygame.transform.scale(imagem_atk_chatgpt,(25,25))
+
+
+
+
+
+
+
+
+###
+
 imagem = pygame.image.load("unnamed.jpg")
 imagem = pygame.transform.scale(imagem, (1200, 800))
 imagem = imagem.convert()
@@ -72,9 +88,10 @@ while rodando:
                     vida_teste_5 = 0
             elif estado_jogo == "JOGANDO":
                 if evento.button == 1:
-                    novo_tiro = imagem_tiro.get_rect(center=player_rect.center)
-                    armazenar_tiro.append(novo_tiro)
-        
+                    novo_tiro_rect = imagem_tiro.get_rect(center=player_rect.center)
+                    direcao = -1 if virado_para_esquerda else 1 #logica de virar o tiro, com o script de antes eles(projeteis) iam somente para a direita  :)
+                    armazenar_tiro.append({"rect": novo_tiro_rect, "dire": direcao}) # aqui tá guardando as info
+
         if evento.type == pygame.KEYDOWN:
             if evento.key == pygame.K_SPACE and not pulando and estado_jogo == "JOGANDO":
                 player_velocidade_y = velocidade_pulo
@@ -92,12 +109,23 @@ while rodando:
     elif estado_jogo == "JOGANDO":
         teclas = pygame.key.get_pressed()
         
-        if teclas[pygame.K_a]:
+        if teclas[pygame.K_a] or teclas[pygame.K_LEFT]:
             player_rect.x -= velocidade
             virado_para_esquerda = True
-        if teclas[pygame.K_d]:
+        if teclas[pygame.K_d] or teclas[pygame.K_RIGHT]: 
             player_rect.x += velocidade
             virado_para_esquerda = False
+
+
+        if player_rect.left < 0:
+            player_rect.left = 0
+
+        if player_rect.right > 1200:
+            player_rect.right = 1200
+
+
+
+
 
         player_velocidade_y += gravidade
         player_rect.y += player_velocidade_y
@@ -112,10 +140,10 @@ while rodando:
             rodando = False
 
         for tiro in armazenar_tiro:
-            tiro.x += velocidade_tiro
-            if tiro.x > 1200:
+            tiro["rect"].x += velocidade_tiro * tiro["dire"]
+            if tiro["rect"].x > 1200 or tiro["rect"].x < 0:
                 armazenar_tiro.remove(tiro)
-            elif tiro.colliderect(enemy_rect):
+            elif tiro["rect"].colliderect(enemy_rect):
                 armazenar_tiro.remove(tiro)
                 vida_teste_5 += 1
                 print("OMYGODE VC ACERTOU O FUKING ROBO")
@@ -127,7 +155,7 @@ while rodando:
         tela.blit(imagem_fundo, (0, 0))
         
         for tiro in armazenar_tiro:
-            tela.blit(imagem_tiro, tiro)
+            tela.blit(imagem_tiro, tiro["rect"])
 
         if virado_para_esquerda:
             tela.blit(imagem_alexandre_virado, player_rect)

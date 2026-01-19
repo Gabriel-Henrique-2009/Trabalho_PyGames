@@ -14,7 +14,7 @@ armazenar_tiro = []
 velocidade_tiro = 10 
 imagem_tiro = pygame.image.load("projetil-teste.png").convert_alpha() #tirar o fundo do png maldito 😒
 imagem_tiro = pygame.transform.scale(imagem_tiro, (25, 25))
-vida_teste_5 = 0
+vida_teste = 0
 
 
 #sistema de atk do boss 
@@ -24,6 +24,13 @@ imagem_atk_chatgpt = pygame.image.load("chatgptlogo.png").convert_alpha()
 imagem_atk_chatgpt = pygame.transform.scale(imagem_atk_chatgpt,(25,25))
 
 
+
+
+
+
+
+
+# EM PRODUÇÃO 
 
 
 
@@ -54,8 +61,15 @@ imagem_alexandre_original = pygame.image.load("imagem-alexandre.png")
 imagem_alexandre = pygame.transform.scale(imagem_alexandre_original, (267, 300))
 imagem_alexandre_virado = pygame.transform.flip(imagem_alexandre, True, False)
 
+imagem_alexandre_parado = pygame.image.load("alexandreparado.png")
+imagem_alexandre_parado = pygame.transform.scale(imagem_alexandre_parado, (267, 300))
+
+
 imagem_robo_original = pygame.image.load("imagem-robo.png")
 imagem_robo = pygame.transform.scale(imagem_robo_original, (267, 300))
+
+
+imagem_atual = imagem_alexandre_parado
 
 player_rect = imagem_alexandre.get_rect()
 enemy_rect = imagem_robo.get_rect()
@@ -73,6 +87,7 @@ player_velocidade_y = 0
 pulando = False
 virado_para_esquerda = False
 
+frames = 0
 while rodando:
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
@@ -91,6 +106,7 @@ while rodando:
                     novo_tiro_rect = imagem_tiro.get_rect(center=player_rect.center)
                     direcao = -1 if virado_para_esquerda else 1 #logica de virar o tiro, com o script de antes eles(projeteis) iam somente para a direita  :)
                     armazenar_tiro.append({"rect": novo_tiro_rect, "dire": direcao}) # aqui tá guardando as info
+                    frames = 10
 
         if evento.type == pygame.KEYDOWN:
             if evento.key == pygame.K_SPACE and not pulando and estado_jogo == "JOGANDO":
@@ -122,7 +138,7 @@ while rodando:
 
         if player_rect.right > 1200:
             player_rect.right = 1200
-
+            # limite de borda :)
 
 
 
@@ -147,8 +163,8 @@ while rodando:
                 armazenar_tiro.remove(tiro)
                 vida_teste_5 += 1
                 print("OMYGODE VC ACERTOU O FUKING ROBO")
-
-        if vida_teste_5 >= 5:
+        # sistema de tiro ajustado 
+        if vida_teste_5 >= 15:  #linha da alteração da vida 
             print("UAU VC É INCRIVEL, VOCÊ GANHOU UM PUDIM! 🍮 ")
             estado_jogo = "MENU" #para voltar no menu
 
@@ -157,14 +173,17 @@ while rodando:
         for tiro in armazenar_tiro:
             tela.blit(imagem_tiro, tiro["rect"])
 
-        if virado_para_esquerda:
-            tela.blit(imagem_alexandre_virado, player_rect)
-        else:
-            print
-            tela.blit(imagem_alexandre, player_rect)
+        if frames > 0:
+            imagem_do_momento = imagem_alexandre
+            frames -= 1
             
+        else:
+            
+            imagem_do_momento = imagem_alexandre_parado
+            
+        imagem_final = pygame.transform.flip(imagem_do_momento, virado_para_esquerda, False)
+        tela.blit(imagem_final, player_rect)
         tela.blit(imagem_robo, enemy_rect)
-
     pygame.display.update()
     clock.tick(60)
 

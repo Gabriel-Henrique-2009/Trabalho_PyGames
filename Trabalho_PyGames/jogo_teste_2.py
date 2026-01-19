@@ -28,8 +28,12 @@ texto_rect_sombra = texto_sombra.get_rect(topleft=(543,483))
 imagem_alexandre = pygame.image.load("Trabalho_PyGames/imagem-alexandre.png")
 imagem_robo = pygame.image.load("Trabalho_PyGames/imagem-robo.png")
 
+
+
 imagem_alexandre = pygame.transform.scale(imagem_alexandre, (60, 60))
 imagem_robo = pygame.transform.scale(imagem_robo, (60, 60))
+
+
 
 player_rect = imagem_alexandre.get_rect()
 enemy_rect = imagem_robo.get_rect()

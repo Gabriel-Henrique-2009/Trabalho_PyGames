@@ -5,7 +5,6 @@ import pygame
 pygame.init()
 
 tela = pygame.display.set_mode((800, 600))
-
 clock = pygame.time.Clock()
 
 imagem_alexandre = pygame.image.load("Trabalho_PyGames/imagem-alexandre.png")

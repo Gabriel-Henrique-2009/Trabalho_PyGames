@@ -68,9 +68,9 @@ imagem_alexandre_parado = pygame.transform.scale(imagem_alexandre_parado, (267, 
 imagem_robo_original = pygame.image.load("imagem-robo.png")
 imagem_robo = pygame.transform.scale(imagem_robo_original, (267, 300))
 class jogador(pygame.sprite.Sprite):
-    def __init__(self,img_parado1,img_parado2,img_ataque):
+    def __init__(self,img_parado1,img_parado2,img_parado3,img_ataque):
         super().__init__()
-        self.frames_idle = [img_parado1,img_parado2, img_ataque]
+        self.frames_idle = [img_parado1,img_parado2,img_parado3]
          #(idle é o nome da animacao de ficar parado e tals)
         self.img_ataque = img_ataque
         self.index_animacao = 0
@@ -79,9 +79,11 @@ class jogador(pygame.sprite.Sprite):
         self.frames_ataque_restante = 0
         self.esquerda = False
         self.velocidade_animacao = 0.05 #ajuste de velocidade da animação IMPORTANTE 
+
     def update(self,posicao_do_rect,olhando_para_esquerda):
         self.rect.topleft = posicao_do_rect
         self.esquerda = olhando_para_esquerda
+        
         if self.frames_ataque_restante > 0:
             imagem_atual = self.img_ataque
             self.frames_ataque_restante -= 1 
@@ -94,11 +96,16 @@ class jogador(pygame.sprite.Sprite):
         
 
 img_base = pygame.image.load("alexandreparado.png").convert_alpha()
-img_f1 = pygame.transform.scale(img_base, (267,300))
-img_f2 = pygame.transform.scale(img_base, (272,290))
+img_base_2 = pygame.image.load("alexandre_transicao (1).png").convert_alpha()
+img_base_3 = pygame.image.load("alexandre_transicao (2) (1).png").convert_alpha()
+
+img_f1 = pygame.transform.scale(img_base, (267,280))
+img_f2 = pygame.transform.scale(img_base_2, (277,310))
+img_f3 = pygame.transform.scale(img_base_3, (267,280))
+
 img_atk_raw = pygame.image.load("imagem-alexandre.png").convert_alpha()
 img_atk = pygame.transform.scale(img_atk_raw, (285,320))  
-alexandre = jogador(img_f1,img_f2,img_atk)
+alexandre = jogador(img_f1,img_f2,img_f3,img_atk)
 grupo_jogador = pygame.sprite.GroupSingle(alexandre)
 
 

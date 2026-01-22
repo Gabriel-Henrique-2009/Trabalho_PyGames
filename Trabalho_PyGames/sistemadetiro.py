@@ -68,9 +68,9 @@ imagem_alexandre_parado = pygame.transform.scale(imagem_alexandre_parado, (267, 
 imagem_robo_original = pygame.image.load("imagem-robo.png")
 imagem_robo = pygame.transform.scale(imagem_robo_original, (267, 300))
 class jogador(pygame.sprite.Sprite):
-    def __init__(self,img_parado1,img_parado2,img_parado3,img_ataque):
+    def __init__(self,img_parado2,img_parado3,img_ataque):
         super().__init__()
-        self.frames_idle = [img_parado1,img_parado2,img_parado3]
+        self.frames_idle = [img_parado2,img_parado3]
          #(idle é o nome da animacao de ficar parado e tals)
         self.img_ataque = img_ataque
         self.index_animacao = 0
@@ -99,13 +99,12 @@ img_base = pygame.image.load("alexandreparado.png").convert_alpha()
 img_base_2 = pygame.image.load("alexandre_transicao (1).png").convert_alpha()
 img_base_3 = pygame.image.load("alexandre_transicao (2) (1).png").convert_alpha()
 
-img_f1 = pygame.transform.scale(img_base, (267,280))
 img_f2 = pygame.transform.scale(img_base_2, (277,310))
-img_f3 = pygame.transform.scale(img_base_3, (267,280))
+img_f3 = pygame.transform.scale(img_base_3, (267, 310))
 
 img_atk_raw = pygame.image.load("imagem-alexandre.png").convert_alpha()
 img_atk = pygame.transform.scale(img_atk_raw, (285,320))  
-alexandre = jogador(img_f1,img_f2,img_f3,img_atk)
+alexandre = jogador(img_f2,img_f3,img_atk)
 grupo_jogador = pygame.sprite.GroupSingle(alexandre)
 
 
@@ -152,7 +151,6 @@ while rodando:
                     direcao = -1 if virado_para_esquerda else 1 #logica de virar o tiro, com o script de antes eles(projeteis) iam somente para a direita  :)
                     armazenar_tiro.append({"rect": novo_tiro_rect, "dire": direcao}) # aqui tá guardando as info
                   #  frames = 10
-                    
 
         if evento.type == pygame.KEYDOWN:
             if evento.key == pygame.K_SPACE and not pulando and estado_jogo == "JOGANDO":
@@ -162,7 +160,8 @@ while rodando:
     if estado_jogo == "MENU":
         tela.fill((200, 200, 200))
         tela.blit(imagem, (0,0))
-        pygame.draw.rect(tela, cor_botao_menu_teste, botao_menu_teste) #Man se quiser ver o texto sem o sistema de colisão
+        pygame.draw.rect(tela, cor_botao_menu_teste, botao_menu_teste) 
+        #Man se quiser ver o texto sem o sistema de colisão
         #do mouse é só tirar essa linha 
         # e o hitbox funciona ainda rs
         tela.blit(texto_sombra, texto_rect_sombra) 
@@ -186,9 +185,6 @@ while rodando:
             player_rect.right = 1200
             # limite de borda :)
 
-
-
-
         player_velocidade_y += gravidade
         player_rect.y += player_velocidade_y
 
@@ -205,10 +201,12 @@ while rodando:
             tiro["rect"].x += velocidade_tiro * tiro["dire"]
             if tiro["rect"].x > 1200 or tiro["rect"].x < 0:
                 armazenar_tiro.remove(tiro)
+
             elif tiro["rect"].colliderect(enemy_rect):
                 armazenar_tiro.remove(tiro)
                 vida_teste_5 += 1
                 print("OMYGODE VC ACERTOU O FUKING ROBO")
+
         # sistema de tiro ajustado 
         if vida_teste_5 >= 15:  #linha da alteração da vida 
             print("UAU VC É INCRIVEL, VOCÊ GANHOU UM PUDIM! 🍮 ")
@@ -219,13 +217,6 @@ while rodando:
         for tiro in armazenar_tiro:
             tela.blit(imagem_tiro, tiro["rect"])
 
-     #   if frames > 0:
-     #       imagem_do_momento = imagem_alexandre
-         #   frames -= 1
-            
-     #   else:
-            
-           # imagem_do_momento = imagem_alexandre_parado
         
         grupo_jogador.update(player_rect.topleft, virado_para_esquerda)
         grupo_jogador.draw(tela)    

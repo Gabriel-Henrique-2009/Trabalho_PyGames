@@ -67,6 +67,39 @@ imagem_alexandre_parado = pygame.transform.scale(imagem_alexandre_parado, (267, 
 
 imagem_robo_original = pygame.image.load("imagem-robo.png")
 imagem_robo = pygame.transform.scale(imagem_robo_original, (267, 300))
+class jogador(pygame.sprite.Sprite):
+    def __init__(self,img_parado1,img_parado2,img_ataque):
+        super().__init__()
+        self.frames_idle = [img_parado1,img_parado2, img_ataque]
+         #(idle é o nome da animacao de ficar parado e tals)
+        self.img_ataque = img_ataque
+        self.index_animacao = 0
+        self.image = self.frames_idle[self.index_animacao]
+        self.rect = self.image.get_rect()
+        self.frames_ataque_restante = 0
+        self.esquerda = False
+        self.velocidade_animacao = 0.05 #ajuste de velocidade da animação IMPORTANTE 
+    def update(self,posicao_do_rect,olhando_para_esquerda):
+        self.rect.topleft = posicao_do_rect
+        self.esquerda = olhando_para_esquerda
+        if self.frames_ataque_restante > 0:
+            imagem_atual = self.img_ataque
+            self.frames_ataque_restante -= 1 
+        else:
+            self.index_animacao += self.velocidade_animacao
+            if self.index_animacao >= len(self.frames_idle):
+                self.index_animacao = 0
+            imagem_atual = self.frames_idle[int(self.index_animacao)]
+        self.image = pygame.transform.flip(imagem_atual,self.esquerda,False)
+        
+
+img_base = pygame.image.load("alexandreparado.png").convert_alpha()
+img_f1 = pygame.transform.scale(img_base, (267,300))
+img_f2 = pygame.transform.scale(img_base, (272,290))
+img_atk_raw = pygame.image.load("imagem-alexandre.png").convert_alpha()
+img_atk = pygame.transform.scale(img_atk_raw, (285,320))  
+alexandre = jogador(img_f1,img_f2,img_atk)
+grupo_jogador = pygame.sprite.GroupSingle(alexandre)
 
 
 imagem_atual = imagem_alexandre_parado
@@ -87,7 +120,11 @@ player_velocidade_y = 0
 pulando = False
 virado_para_esquerda = False
 
-frames = 0
+#frames = 0
+# testando as sprites da aula, fala ai oq tu achou man
+
+
+
 while rodando:
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
@@ -103,10 +140,12 @@ while rodando:
                     vida_teste_5 = 0
             elif estado_jogo == "JOGANDO":
                 if evento.button == 1:
+                    alexandre.frames_ataque_restante = 15 # velocidade do ataque(quando clica para atirar) IMPORTANTE
                     novo_tiro_rect = imagem_tiro.get_rect(center=player_rect.center)
                     direcao = -1 if virado_para_esquerda else 1 #logica de virar o tiro, com o script de antes eles(projeteis) iam somente para a direita  :)
                     armazenar_tiro.append({"rect": novo_tiro_rect, "dire": direcao}) # aqui tá guardando as info
-                    frames = 10
+                  #  frames = 10
+                    
 
         if evento.type == pygame.KEYDOWN:
             if evento.key == pygame.K_SPACE and not pulando and estado_jogo == "JOGANDO":
@@ -168,23 +207,25 @@ while rodando:
             print("UAU VC É INCRIVEL, VOCÊ GANHOU UM PUDIM! 🍮 ")
             estado_jogo = "MENU" #para voltar no menu
 
-        tela.blit(imagem_fundo, (0, 0))
         
+        tela.blit(imagem_fundo, (0,0))
         for tiro in armazenar_tiro:
             tela.blit(imagem_tiro, tiro["rect"])
 
-        if frames > 0:
-            imagem_do_momento = imagem_alexandre
-            frames -= 1
+     #   if frames > 0:
+     #       imagem_do_momento = imagem_alexandre
+         #   frames -= 1
             
-        else:
+     #   else:
             
-            imagem_do_momento = imagem_alexandre_parado
-            
-        imagem_final = pygame.transform.flip(imagem_do_momento, virado_para_esquerda, False)
-        tela.blit(imagem_final, player_rect)
-        tela.blit(imagem_robo, enemy_rect)
+           # imagem_do_momento = imagem_alexandre_parado
+        
+        grupo_jogador.update(player_rect.topleft, virado_para_esquerda)
+        grupo_jogador.draw(tela)    
+        tela.blit(imagem_robo,enemy_rect)
+        
     pygame.display.update()
     clock.tick(60)
+
 
 pygame.quit()

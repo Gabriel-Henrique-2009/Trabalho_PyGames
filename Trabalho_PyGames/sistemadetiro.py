@@ -15,6 +15,8 @@ velocidade_tiro = 10
 imagem_tiro = pygame.image.load("projetil-teste.png").convert_alpha() #tirar o fundo do png maldito 😒
 imagem_tiro = pygame.transform.scale(imagem_tiro, (25, 25))
 vida_teste = 0
+var_muni = 10
+outr = 0
 
 
 #sistema de atk do boss 
@@ -146,10 +148,16 @@ while rodando:
                     vida_teste_5 = 0
             elif estado_jogo == "JOGANDO":
                 if evento.button == 1:
-                    alexandre.frames_ataque_restante = 15 # velocidade do ataque(quando clica para atirar) IMPORTANTE
-                    novo_tiro_rect = imagem_tiro.get_rect(center=player_rect.center)
-                    direcao = -1 if virado_para_esquerda else 1 #logica de virar o tiro, com o script de antes eles(projeteis) iam somente para a direita  :)
-                    armazenar_tiro.append({"rect": novo_tiro_rect, "dire": direcao}) # aqui tá guardando as info
+                    if var_muni <= 10:
+                        alexandre.frames_ataque_restante = 15 # velocidade do ataque(quando clica para atirar) IMPORTANTE
+                        novo_tiro_rect = imagem_tiro.get_rect(center=player_rect.center)
+                        direcao = -1 if virado_para_esquerda else 1 #logica de virar o tiro, com o script de antes eles(projeteis) iam somente para a direita  :)
+                        armazenar_tiro.append({"rect": novo_tiro_rect, "dire": direcao}) # aqui tá guardando as info
+                        var_muni -= 1
+                        if var_muni <= 5:
+                            outr = 5
+                            var_muni += 5
+                            print("somou")
                   #  frames = 10
 
         if evento.type == pygame.KEYDOWN:

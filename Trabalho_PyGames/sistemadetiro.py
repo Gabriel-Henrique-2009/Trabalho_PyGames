@@ -167,6 +167,11 @@ while rodando:
                     contagem = 3
                     vida_teste_5 = 0
                     vida_player = 3
+                    player_rect.x = 100
+                    player_rect.y = 800 - player_rect.height
+                    pulando = False
+                    player_velocidade_y = 0
+                    virado_para_esquerda = False
                     armazenar_tiro.clear()
                     armazenar_tiro_boss.clear()
             elif estado_jogo == "JOGANDO":

@@ -11,12 +11,19 @@ clock = pygame.time.Clock()
 rodando = True
 estado_jogo = "MENU"
 
+
+fonte_contagem = pygame.font.Font("Silkscreen-Regular.ttf", 100)
+contagem = 3
+contagem_final = 0
+
+
 armazenar_tiro = []
 velocidade_tiro = 10 
 imagem_tiro = pygame.image.load("projetil-teste.png").convert_alpha() #tirar o fundo do png maldito 😒
 imagem_tiro = pygame.transform.scale(imagem_tiro, (25, 25))
 vida_teste = 0
-
+vida_player = 3
+tempo_imunidade_player = 0
 var_muni = 1
 temposs = 0
 carregando_tiro = False
@@ -26,8 +33,9 @@ carregando_tiro = False
 armazenar_tiro_boss = []
 velocidade_tiro_boss = 7
 imagem_atk_chatgpt = pygame.image.load("chatgptlogo.png").convert_alpha()
-imagem_atk_chatgpt = pygame.transform.scale(imagem_atk_chatgpt,(25,25))
-
+imagem_atk_chatgpt = pygame.transform.scale(imagem_atk_chatgpt,(35,35)) # deixei maior que o tiro do jogador para intimidar kkkkkkk
+tempo_ultimo_tiro_robo = 0
+intervalo_dos_tiro = 1.5 
 
 
 
@@ -73,11 +81,12 @@ imagem_alexandre_parado = pygame.transform.scale(imagem_alexandre_parado, (267, 
 imagem_robo_original = pygame.image.load("imagem-robo.png")
 imagem_robo = pygame.transform.scale(imagem_robo_original, (267, 300))
 class jogador(pygame.sprite.Sprite):
-    def __init__(self,img_parado2,img_parado3,img_ataque):
+    def __init__(self,img_parado2,img_parado3,img_ataque,img_pulo):
         super().__init__()
         self.frames_idle = [img_parado2,img_parado3]
          #(idle é o nome da animacao de ficar parado e tals)
         self.img_ataque = img_ataque
+        self.img_pulo = img_pulo
         self.index_animacao = 0
         self.image = self.frames_idle[self.index_animacao]
         self.rect = self.image.get_rect()
@@ -85,13 +94,15 @@ class jogador(pygame.sprite.Sprite):
         self.esquerda = False
         self.velocidade_animacao = 0.05 #ajuste de velocidade da animação IMPORTANTE 
 
-    def update(self,posicao_do_rect,olhando_para_esquerda):
+    def update(self,posicao_do_rect,olhando_para_esquerda,pulando):
         self.rect.topleft = posicao_do_rect
         self.esquerda = olhando_para_esquerda
         
         if self.frames_ataque_restante > 0:
             imagem_atual = self.img_ataque
             self.frames_ataque_restante -= 1 
+        elif pulando:
+            imagem_atual = self.img_pulo
         else:
             self.index_animacao += self.velocidade_animacao
             if self.index_animacao >= len(self.frames_idle):
@@ -109,7 +120,11 @@ img_f3 = pygame.transform.scale(img_base_3, (267, 310))
 
 img_atk_raw = pygame.image.load("imagem-alexandre.png").convert_alpha()
 img_atk = pygame.transform.scale(img_atk_raw, (285,320))  
-alexandre = jogador(img_f2,img_f3,img_atk)
+
+img_pulo_raw = pygame.image.load("alexandrepulando.png")
+img_pulo = pygame.transform.scale(img_pulo_raw,(267,310))
+
+alexandre = jogador(img_f2,img_f3,img_atk,img_pulo)
 grupo_jogador = pygame.sprite.GroupSingle(alexandre)
 
 
@@ -147,8 +162,13 @@ while rodando:
             # # Eduardo, aqui que a gnt vai ter que fazer o nosso jogo msm, né? eu coloquei só o botão de jgr. Acho bom fazer o jogo em um outro arquivo e depois, só passar pra cá
             if estado_jogo == "MENU":
                 if botao_menu_teste.collidepoint(evento.pos): 
-                    estado_jogo = "JOGANDO"
+                    estado_jogo = "COUNTDOWN"
+                    contagem_final = time.time()
+                    contagem = 3
                     vida_teste_5 = 0
+                    vida_player = 3
+                    armazenar_tiro.clear()
+                    armazenar_tiro_boss.clear()
             elif estado_jogo == "JOGANDO":
                 if evento.button == 1:
                     if var_muni == 1:
@@ -157,6 +177,8 @@ while rodando:
                         direcao = -1 if virado_para_esquerda else 1 #logica de virar o tiro, com o script de antes eles(projeteis) iam somente para a direita  :)
                         armazenar_tiro.append({"rect": novo_tiro_rect, "dire": direcao}) # aqui tá guardando as info
                         var_muni -= 1
+                        temposs = time.time()
+                        carregando_tiro = True
 
                     if var_muni == 0 and not carregando_tiro:
                         temposs = time.time()
@@ -168,7 +190,7 @@ while rodando:
                         print("DEMOROU TROPINHAAAAAAA")
 
                   #  frames = 10
-
+            
         if evento.type == pygame.KEYDOWN:
             if evento.key == pygame.K_SPACE and not pulando and estado_jogo == "JOGANDO":
                 player_velocidade_y = velocidade_pulo
@@ -183,10 +205,36 @@ while rodando:
         # e o hitbox funciona ainda rs
         tela.blit(texto_sombra, texto_rect_sombra) 
         tela.blit(texto_surface_texto_frente, texto_rect)
+    elif estado_jogo == "COUNTDOWN":
+            tela.blit(imagem_fundo, (0,0))
+            grupo_jogador.update(player_rect.topleft, virado_para_esquerda, pulando)
+            grupo_jogador.draw(tela)    
+            tela.blit(imagem_robo,enemy_rect)
 
+            overlay = pygame.Surface((1200,800))
+            overlay.set_alpha(150)
+            overlay.fill((0,0,0))
+            tela.blit(overlay, (0,0))
+
+            tempo_atual = time.time()
+            if tempo_atual - contagem_final >= 1.0:
+                contagem -= 1
+                contagem_final = tempo_atual
+            if contagem > 0:
+                texto_num = fonte_contagem.render(str(contagem),True,(255,255,255))
+                rect_num = texto_num.get_rect(center=(600,400))
+                tela.blit(texto_num,rect_num)
+            else:
+                estado_jogo = "JOGANDO"
     elif estado_jogo == "JOGANDO":
         teclas = pygame.key.get_pressed()
         
+        tempo_atual = time.time()
+        if tempo_atual - tempo_ultimo_tiro_robo >= intervalo_dos_tiro:
+            novo_tiro_robo_rect = imagem_atk_chatgpt.get_rect(center=enemy_rect.center)
+            armazenar_tiro_boss.append(novo_tiro_robo_rect)
+            tempo_ultimo_tiro_robo = tempo_atual
+
         if teclas[pygame.K_a] or teclas[pygame.K_LEFT]:
             player_rect.x -= velocidade
             virado_para_esquerda = True
@@ -211,7 +259,7 @@ while rodando:
             player_velocidade_y = 0
 
         if player_rect.colliderect(enemy_rect):
-            print("Fim de jogo")
+            print("colidiu com a ia e morreu 🙏😫💔")
             rodando = False
 
         for tiro in armazenar_tiro:
@@ -223,7 +271,23 @@ while rodando:
                 armazenar_tiro.remove(tiro)
                 vida_teste_5 += 1
                 print("OMYGODE VC ACERTOU O FUKING ROBO")
-
+        for tiro2 in armazenar_tiro_boss:
+            tiro2.x -= velocidade_tiro_boss
+            if tiro2.right < 0:
+                armazenar_tiro_boss.remove(tiro2)
+            elif tiro2.colliderect(player_rect):
+                armazenar_tiro_boss.remove(tiro2)
+                if time.time() - tempo_imunidade_player > 1.0:
+                    vida_player -= 1
+                    tempo_imunidade_player = time.time()
+                    print(f"Vc tomou um tiro da IA sigma 🤣🤣, vidas restantes {vida_player}")
+        if player_rect.colliderect(enemy_rect) and time.time() - tempo_imunidade_player:
+            vida_player -= 1
+            tempo_imunidade_player = time.time()
+        if vida_player <= 0:
+            print("VC foi mogado pela IA sigma 🤣🤣🤣")
+            print("tenta dnv beta 🤦‍♂️")
+            estado_jogo = "MENU"
         # sistema de tiro ajustado 
         if vida_teste_5 >= 15:  #linha da alteração da vida 
             print("UAU VC É INCRIVEL, VOCÊ GANHOU UM PUDIM! 🍮 ")
@@ -233,9 +297,11 @@ while rodando:
         tela.blit(imagem_fundo, (0,0))
         for tiro in armazenar_tiro:
             tela.blit(imagem_tiro, tiro["rect"])
+        for tiro2 in armazenar_tiro_boss:
+            tela.blit(imagem_atk_chatgpt, tiro2)
 
         
-        grupo_jogador.update(player_rect.topleft, virado_para_esquerda)
+        grupo_jogador.update(player_rect.topleft, virado_para_esquerda, pulando)
         grupo_jogador.draw(tela)    
         tela.blit(imagem_robo,enemy_rect)
         

@@ -57,13 +57,14 @@ imagem_robo = pygame.transform.scale(imagem_robo_original, (267, 300))
 
 # CONFIGURAÇÕES DO SPRITE  
 class jogador(pygame.sprite.Sprite):
-    def __init__(self,img_parado2,img_parado3,img_ataque):
+    def __init__(self,img_parado2,img_parado3,img_ataque,img_pulo):
         super().__init__()
         self.frames_idle = [img_parado2,img_parado3]
         self.img_ataque = img_ataque
         self.index_animacao = 0
         self.image = self.frames_idle[self.index_animacao]
         self.rect = self.image.get_rect()
+        self.img_pulo = img_pulo
         self.frames_ataque_restante = 0
         self.esquerda = False
         self.velocidade_animacao = 0.05
@@ -92,8 +93,15 @@ img_f2 = pygame.transform.scale(img_base_2, (277,310))
 img_f3 = pygame.transform.scale(img_base_3, (267, 310))
 
 img_atk_raw = pygame.image.load("imagem-alexandre.png").convert_alpha()
-img_atk = pygame.transform.scale(img_atk_raw, (285,320))  
-alexandre = jogador(img_f2,img_f3,img_atk)
+img_atk = pygame.transform.scale(img_atk_raw, (285,320))
+
+img_pulo_raw = pygame.image.load("alexandrepulando.png")
+img_pulo = pygame.transform.scale(img_pulo_raw,(267,310))
+
+
+alexandre = jogador(img_f2,img_f3,img_atk,img_pulo)
+
+
 grupo_jogador = pygame.sprite.GroupSingle(alexandre)
 
 imagem_atual = imagem_alexandre_parado
@@ -127,7 +135,7 @@ while rodando:
             if estado_jogo == "MENU":
                 if botao_menu_teste.collidepoint(evento.pos): 
                     estado_jogo = "JOGANDO"
-                    vida_teste_5 = 0
+                    vida_teste = 0
 
             elif estado_jogo == "JOGANDO":
                 if evento.button == 1:
@@ -203,7 +211,7 @@ while rodando:
                 print("OMYGODE VC ACERTOU O FUKING ROBO")
 
 
-        if vida_teste_5 >= 15: 
+        if vida_teste >= 15: 
             print("UAU VC É INCRIVEL, VOCÊ GANHOU UM PUDIM! 🍮 ")
             estado_jogo = "MENU"
         

@@ -13,9 +13,15 @@ estado_jogo = "MENU"
 
 
 fonte_contagem = pygame.font.Font("Silkscreen-Regular.ttf", 100)
+fonte_vitoria = pygame.font.Font("Silkscreen-Regular.ttf", 110)
 contagem = 3
 contagem_final = 0
 
+
+tempo_inicio_vitoria = 0
+posicao_y_vitoria = 850
+imagem_vitoria = pygame.image.load("alexandrevitoria2.png").convert_alpha()
+imagem_vitoria = pygame.transform.scale(imagem_vitoria,(500,500))
 
 armazenar_tiro = []
 velocidade_tiro = 10 
@@ -78,7 +84,7 @@ imagem_alexandre_parado = pygame.image.load("alexandreparado.png")
 imagem_alexandre_parado = pygame.transform.scale(imagem_alexandre_parado, (267, 300))
 
 
-imagem_robo_original = pygame.image.load("imagem-robo.png")
+imagem_robo_original = pygame.image.load("imagem-roboparado.png")
 imagem_robo = pygame.transform.scale(imagem_robo_original, (267, 300))
 class jogador(pygame.sprite.Sprite):
     def __init__(self,img_parado2,img_parado3,img_ataque,img_pulo):
@@ -141,7 +147,7 @@ enemy_rect.y = 800 - enemy_rect.height
 
 velocidade = 5
 gravidade = 0.5
-velocidade_pulo = -15     
+velocidade_pulo = -17
 player_velocidade_y = 0
 pulando = False
 virado_para_esquerda = False
@@ -174,6 +180,7 @@ while rodando:
                     virado_para_esquerda = False
                     armazenar_tiro.clear()
                     armazenar_tiro_boss.clear()
+                    posicao_y_vitoria = 800
             elif estado_jogo == "JOGANDO":
                 if evento.button == 1:
                     if var_muni == 1:
@@ -212,7 +219,7 @@ while rodando:
         tela.blit(texto_surface_texto_frente, texto_rect)
     elif estado_jogo == "COUNTDOWN":
             tela.blit(imagem_fundo, (0,0))
-            grupo_jogador.update(player_rect.topleft, virado_para_esquerda, pulando)
+            grupo_jogador.update(player_rect.topleft, virado_para_esquerda, pulando) #draw/upd
             grupo_jogador.draw(tela)    
             tela.blit(imagem_robo,enemy_rect)
 
@@ -294,9 +301,11 @@ while rodando:
             print("tenta dnv beta 🤦‍♂️")
             estado_jogo = "MENU"
         # sistema de tiro ajustado 
-        if vida_teste_5 >= 15:  #linha da alteração da vida 
-            print("UAU VC É INCRIVEL, VOCÊ GANHOU UM PUDIM! 🍮 ")
-            estado_jogo = "MENU" #para voltar no menu
+        if vida_teste_5 >= 15: #alterar vida do boss
+            print("MOGOU A IA BETA")  #linha da alteração da vida 
+            tempo_inicio_vitoria = time.time()
+            estado_jogo = "VITORIA"
+
 
         
         tela.blit(imagem_fundo, (0,0))
@@ -309,7 +318,31 @@ while rodando:
         grupo_jogador.update(player_rect.topleft, virado_para_esquerda, pulando)
         grupo_jogador.draw(tela)    
         tela.blit(imagem_robo,enemy_rect)
-        
+    elif estado_jogo == "VITORIA":
+        tela.blit(imagem_fundo, (0,0))
+        grupo_jogador.draw(tela)
+        tela.blit(imagem_robo,enemy_rect)
+        overlay = pygame.Surface((1200,800))
+        overlay.set_alpha(180)
+        overlay.fill((0,0,0))
+        tela.blit(overlay, (0,0))
+        tempo_passado = time.time() - tempo_inicio_vitoria
+        if tempo_passado < 3.0:
+            txt_parabens = fonte_vitoria.render("PARABÉNS!",True,(255, 255, 255)) 
+            rect_parabens = txt_parabens.get_rect(center=(600, 400)) 
+            tela.blit(txt_parabens,rect_parabens)
+        elif 3.0 <= tempo_passado <= 6.0:
+            progresso_subida = (tempo_passado - 3.0) / 3.0
+            posicao_y_vitoria = 1100 - (750 *progresso_subida)
+            rect_vitoria = imagem_vitoria.get_rect(center=(600,int(posicao_y_vitoria)))
+            tela.blit(imagem_vitoria,rect_vitoria)
+        elif 6.0 < tempo_passado <10.0:
+            rect_vitoria = imagem_vitoria.get_rect(center=(600,400))
+            tela.blit(imagem_vitoria,rect_vitoria)
+
+        if tempo_passado >= 10.0:
+            estado_jogo = "MENU"        
+
     pygame.display.update()
     clock.tick(60)
 

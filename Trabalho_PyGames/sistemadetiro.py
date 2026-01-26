@@ -12,6 +12,11 @@ rodando = True
 estado_jogo = "MENU"
 
 
+vermelho = (153, 0, 0)
+verde = (0, 153, 102)
+branco = (255, 255, 255)
+
+
 fonte_contagem = pygame.font.Font("Silkscreen-Regular.ttf", 100)
 fonte_vitoria = pygame.font.Font("Silkscreen-Regular.ttf", 110)
 contagem = 3
@@ -39,23 +44,9 @@ carregando_tiro = False
 armazenar_tiro_boss = []
 velocidade_tiro_boss = 7
 imagem_atk_chatgpt = pygame.image.load("chatgptlogo.png").convert_alpha()
-imagem_atk_chatgpt = pygame.transform.scale(imagem_atk_chatgpt,(35,35)) # deixei maior que o tiro do jogador para intimidar kkkkkkk
+imagem_atk_chatgpt = pygame.transform.scale(imagem_atk_chatgpt,(40, 40)) # deixei maior que o tiro do jogador para intimidar kkkkkkk
 tempo_ultimo_tiro_robo = 0
 intervalo_dos_tiro = 1.5 
-
-
-
-
-
-
-
-# EM PRODUÇÃO 
-
-
-
-
-
-
 ###
 
 imagem = pygame.image.load("unnamed.jpg")
@@ -84,7 +75,7 @@ imagem_alexandre_parado = pygame.image.load("alexandreparado.png")
 imagem_alexandre_parado = pygame.transform.scale(imagem_alexandre_parado, (267, 300))
 
 
-imagem_robo_original = pygame.image.load("imagem-roboparado.png")
+imagem_robo_original = pygame.image.load("imagem_roboparado.png")
 imagem_robo = pygame.transform.scale(imagem_robo_original, (267, 300))
 class jogador(pygame.sprite.Sprite):
     def __init__(self,img_parado2,img_parado3,img_ataque,img_pulo):
@@ -100,7 +91,7 @@ class jogador(pygame.sprite.Sprite):
         self.esquerda = False
         self.velocidade_animacao = 0.05 #ajuste de velocidade da animação IMPORTANTE 
 
-    def update(self,posicao_do_rect,olhando_para_esquerda,pulando):
+    def update(self,posicao_do_rect,olhando_para_esquerda,pulando,):
         self.rect.topleft = posicao_do_rect
         self.esquerda = olhando_para_esquerda
         
@@ -115,7 +106,26 @@ class jogador(pygame.sprite.Sprite):
                 self.index_animacao = 0
             imagem_atual = self.frames_idle[int(self.index_animacao)]
         self.image = pygame.transform.flip(imagem_atual,self.esquerda,False)
-        
+
+class boss(pygame.sprite.Sprite):
+    def __init__(self,img_atk_boss, img_base_boss):
+       super().__init__()
+       self.frames_idle2 = [img_atk_boss,img_base_boss]
+       self.img_atk_boss = img_atk_boss
+       self.img_base_boss = img_base_boss
+       self.index_animacao2 = 0
+       self.image2 = self.frames_idle2[self.index_animacao2]
+       self.rect2 = self.image.get_rect()
+       self.frames_ataque_restante2 = 0
+       self.velocidade_animacao2 = 0.05 #ajuste de velocidade da animação IMPORTANTE 
+
+def barravida_player (vida, x, y):
+    proporcao = vida/10
+    pygame.draw.rect(tela, branco, (x-2, y-2, 404, 34))
+    pygame.draw.rect(tela, vermelho, (x, y, 400, 30))
+    pygame.draw.rect(tela, verde, (x, y, 400 * proporcao, 30))
+    return
+
 
 img_base = pygame.image.load("alexandreparado.png").convert_alpha()
 img_base_2 = pygame.image.load("alexandre_transicao (1).png").convert_alpha()
@@ -129,6 +139,11 @@ img_atk = pygame.transform.scale(img_atk_raw, (285,320))
 
 img_pulo_raw = pygame.image.load("alexandrepulando.png")
 img_pulo = pygame.transform.scale(img_pulo_raw,(267,310))
+
+img_base_boss = pygame.image.load("imagem_roboparado.png").convert_alpha()
+img_base_boss = pygame.transform.scale(img_base_boss,(267, 310))
+img_atk_boss = pygame.image.load("imagem_roboatacando.png").convert_alpha()
+img_atk_boss = pygame.transform.scale(img_atk_boss,(267,300)).convert_alpha()
 
 alexandre = jogador(img_f2,img_f3,img_atk,img_pulo)
 grupo_jogador = pygame.sprite.GroupSingle(alexandre)
@@ -172,7 +187,7 @@ while rodando:
                     contagem_final = time.time()
                     contagem = 3
                     vida_teste_5 = 0
-                    vida_player = 3
+                    vida_player = 10
                     player_rect.x = 100
                     player_rect.y = 800 - player_rect.height
                     pulando = False
@@ -270,9 +285,9 @@ while rodando:
             pulando = False
             player_velocidade_y = 0
 
-        if player_rect.colliderect(enemy_rect):
-            print("colidiu com a ia e morreu 🙏😫💔")
-            rodando = False
+        # if player_rect.colliderect(enemy_rect):
+        #     print("colidiu com a ia e morreu 🙏😫💔")
+        #     rodando = False
 
         for tiro in armazenar_tiro:
             tiro["rect"].x += velocidade_tiro * tiro["dire"]
@@ -293,15 +308,17 @@ while rodando:
                     vida_player -= 1
                     tempo_imunidade_player = time.time()
                     print(f"Vc tomou um tiro da IA sigma 🤣🤣, vidas restantes {vida_player}")
-        if player_rect.colliderect(enemy_rect) and time.time() - tempo_imunidade_player:
-            vida_player -= 1
-            tempo_imunidade_player = time.time()
+        # if player_rect.colliderect(enemy_rect) and time.time() - tempo_imunidade_player:
+        #     vida_player -= 1
+        #     tempo_imunidade_player = time.time()
+
         if vida_player <= 0:
             print("VC foi mogado pela IA sigma 🤣🤣🤣")
             print("tenta dnv beta 🤦‍♂️")
             estado_jogo = "MENU"
+            
         # sistema de tiro ajustado 
-        if vida_teste_5 >= 15: #alterar vida do boss
+        if vida_teste_5 >= 10: #alterar vida do boss
             print("MOGOU A IA BETA")  #linha da alteração da vida 
             tempo_inicio_vitoria = time.time()
             estado_jogo = "VITORIA"
@@ -314,10 +331,12 @@ while rodando:
         for tiro2 in armazenar_tiro_boss:
             tela.blit(imagem_atk_chatgpt, tiro2)
 
-        
         grupo_jogador.update(player_rect.topleft, virado_para_esquerda, pulando)
         grupo_jogador.draw(tela)    
         tela.blit(imagem_robo,enemy_rect)
+        
+        barravida_player(vida_player, 20, 20)
+
     elif estado_jogo == "VITORIA":
         tela.blit(imagem_fundo, (0,0))
         grupo_jogador.draw(tela)

@@ -32,7 +32,7 @@ armazenar_tiro = []
 velocidade_tiro = 10 
 imagem_tiro = pygame.image.load("projetil-teste.png").convert_alpha() #tirar o fundo do png maldito 😒
 imagem_tiro = pygame.transform.scale(imagem_tiro, (25, 25))
-vida_teste = 0
+vida_teste = 10
 vida_player = 3
 tempo_imunidade_player = 0
 var_muni = 1
@@ -125,6 +125,17 @@ def barravida_player (vida, x, y):
     pygame.draw.rect(tela, vermelho, (x, y, 400, 30))
     pygame.draw.rect(tela, verde, (x, y, 400 * proporcao, 30))
     return
+
+def barravida_boss (vida, x, y):
+    proporcao = (10 - vida) / 10
+    proporcao = max(0, min(proporcao, 1))
+    largura_verde = 400 * proporcao
+    pygame.draw.rect(tela, branco, (x-2, y-2, 404, 34))
+    pygame.draw.rect(tela, vermelho, (x, y, 400, 30))
+    x_invertido = x + (400 - largura_verde)
+    pygame.draw.rect(tela, verde, (x_invertido, y, largura_verde, 30))
+    return
+
 
 
 img_base = pygame.image.load("alexandreparado.png").convert_alpha()
@@ -336,7 +347,7 @@ while rodando:
         tela.blit(imagem_robo,enemy_rect)
         
         barravida_player(vida_player, 20, 20)
-
+        barravida_boss(vida_teste_5, 780,20)
     elif estado_jogo == "VITORIA":
         tela.blit(imagem_fundo, (0,0))
         grupo_jogador.draw(tela)

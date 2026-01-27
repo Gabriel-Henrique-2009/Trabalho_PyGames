@@ -110,14 +110,31 @@ class jogador(pygame.sprite.Sprite):
 class boss(pygame.sprite.Sprite):
     def __init__(self,img_atk_boss, img_base_boss):
        super().__init__()
-       self.frames_idle2 = [img_atk_boss,img_base_boss]
-       self.img_atk_boss = img_atk_boss
-       self.img_base_boss = img_base_boss
-       self.index_animacao2 = 0
-       self.image2 = self.frames_idle2[self.index_animacao2]
-       self.rect2 = self.image.get_rect()
-       self.frames_ataque_restante2 = 0
-       self.velocidade_animacao2 = 0.05 #ajuste de velocidade da animação IMPORTANTE 
+       self.frames_idle = [img_atk_boss,img_base_boss]
+       self.index_animacao = 0
+       self.image = self.frames_idle[self.index_animacao]
+       self.rect = self.image.get_rect()
+       self.frames_ataque_restante = 0
+       self.velocidade_animacao = 0.02 #ajuste de velocidade da animação IMPORTANTE 
+       self.esquerda = False
+       self.disparou = False 
+    def update(self,posicao_do_rect):
+        self.rect.topleft = posicao_do_rect
+        
+        if self.frames_ataque_restante > 0:
+            imagem_atual = self.frames_idle[1]
+            self.frames_ataque_restante -= 1
+            if self.frames_ataque_restante == 10:
+                self.disparou = True
+            else:
+                self.disparou = False
+        else:
+            self.index_animacao += self.velocidade_animacao
+            if self.index_animacao >= len(self.frames_idle):
+                self.index_animacao = 0
+            imagem_atual = self.frames_idle[int(self.index_animacao)]
+            self.disparou = False
+        self.image = pygame.transform.flip(imagem_atual,self.esquerda,False)
 
 def barravida_player (vida, x, y):
     proporcao = vida/10
@@ -133,7 +150,7 @@ def barravida_boss (vida, x, y):
     pygame.draw.rect(tela, branco, (x-2, y-2, 404, 34))
     pygame.draw.rect(tela, vermelho, (x, y, 400, 30))
     x_invertido = x + (400 - largura_verde)
-    pygame.draw.rect(tela, verde, (x_invertido, y, largura_verde, 30))
+    pygame.draw.rect(tela, verde, (x_invertido, y, largura_verde, 30)) # Para a barra diminuir da esquerda para a direita
     return
 
 
@@ -153,12 +170,13 @@ img_pulo = pygame.transform.scale(img_pulo_raw,(267,310))
 
 img_base_boss = pygame.image.load("imagem_roboparado.png").convert_alpha()
 img_base_boss = pygame.transform.scale(img_base_boss,(267, 310))
-img_atk_boss = pygame.image.load("imagem_roboatacando.png").convert_alpha()
-img_atk_boss = pygame.transform.scale(img_atk_boss,(267,300)).convert_alpha()
+img_atk_boss = pygame.image.load("imagem_roboatk.png").convert_alpha()
+img_atk_boss = pygame.transform.scale(img_atk_boss,(277,300))
 
 alexandre = jogador(img_f2,img_f3,img_atk,img_pulo)
 grupo_jogador = pygame.sprite.GroupSingle(alexandre)
-
+robo = boss(img_base_boss,img_atk_boss)
+grupo_boss = pygame.sprite.GroupSingle(robo)
 
 imagem_atual = imagem_alexandre_parado
 
@@ -270,9 +288,14 @@ while rodando:
         tempo_atual = time.time()
         if tempo_atual - tempo_ultimo_tiro_robo >= intervalo_dos_tiro:
             novo_tiro_robo_rect = imagem_atk_chatgpt.get_rect(center=enemy_rect.center)
+            robo.frames_ataque_restante = 30
             armazenar_tiro_boss.append(novo_tiro_robo_rect)
             tempo_ultimo_tiro_robo = tempo_atual
-
+        grupo_boss.update(enemy_rect.topleft)
+        if robo.disparou:
+            novo_tiro_rect = imagem_atk_chatgpt.get_rect(center=enemy_rect.center)
+            armazenar_tiro_boss.append(novo_tiro_robo_rect)
+            robo.disparou = False
         if teclas[pygame.K_a] or teclas[pygame.K_LEFT]:
             player_rect.x -= velocidade
             virado_para_esquerda = True
@@ -344,7 +367,11 @@ while rodando:
 
         grupo_jogador.update(player_rect.topleft, virado_para_esquerda, pulando)
         grupo_jogador.draw(tela)    
-        tela.blit(imagem_robo,enemy_rect)
+
+        grupo_boss.update(enemy_rect.topleft)
+        grupo_boss.draw(tela)
+        if tempo_atual - tempo_ultimo_tiro_robo >= intervalo_dos_tiro:
+            robo.frames_ataque_restante = 10
         
         barravida_player(vida_player, 20, 20)
         barravida_boss(vida_teste_5, 780,20)

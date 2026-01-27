@@ -398,6 +398,9 @@ while rodando:
             print("VC foi mogado pela IA sigma 🤣🤣🤣")
             print("tenta dnv beta 🤦‍♂️")
             estado_jogo = "MENU"
+
+        if usando == fase5:
+            modo_vitoria += 1
             
         # sistema de tiro ajustado 
         if vida_teste_5 >= 10: #alterar vida do boss
@@ -426,8 +429,7 @@ while rodando:
         
         barravida_player(vida_player, 20, 40)
         barravida_boss(vida_teste_5, 780, 40)
-        if usando == fase5:
-            modo_vitoria += 1
+        
 
     elif estado_jogo == "VITORIA":
         tela.blit(imagem_fundo, (0,0))
@@ -458,6 +460,4 @@ while rodando:
 
     pygame.display.update()
     clock.tick(60)
-
-
 pygame.quit()

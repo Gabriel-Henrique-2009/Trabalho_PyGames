@@ -4,7 +4,6 @@ import time
 pygame.init()
 
 botao_menu_teste = pygame.Rect(435, 453, 362, 110)
-
 cor_botao_menu_teste = (0, 153, 102)
 tela = pygame.display.set_mode((1200, 800))
 clock = pygame.time.Clock()
@@ -55,12 +54,33 @@ imagem = imagem.convert()
 #essa linha tava conflitando com a imagem 
 #essa tbm 
 
+fase2 = "round 2"
+fase3 = "round 3"
+fase4 = "round 4"
+fase5 = "round 5"
+usando = fase2
+modo_vitoria = 1
+
+
 font = pygame.font.Font("Silkscreen-Regular.ttf", 36)
 
 texto_surface_texto_frente = font.render("Jogar", True, (215, 238, 244))
-texto_sombra = font.render("Jogar", True, (80, 123, 70)) # efeito de sombra igual tilulo 
 texto_rect = texto_surface_texto_frente.get_rect(topleft=(540, 480)) #certinho rs
+texto_sombra = font.render("Jogar", True, (80, 123, 70)) # efeito de sombra igual tilulo 
 texto_rect_sombra = texto_sombra.get_rect(topleft=(543,483))
+
+
+# TEXTO DO MENU DOIS
+texto_surface_texto_frente2 = font.render("Continuar", True, (215, 238, 244))
+texto_rect2 = texto_surface_texto_frente2.get_rect(topleft=(492, 455))
+texto_sombra2 = font.render("Continuar", True, (80, 123, 70))
+texto_rect_sombra2 = texto_sombra2.get_rect(topleft=(495,458))
+
+texto_fase = font.render(usando, True, (215, 238, 244))
+texto_rect_fase = texto_fase.get_rect(topleft=(516, 505))
+texto_fase_sombra = font.render(usando, True, (80, 123, 70))
+texto_rect_fase_sombra = texto_fase_sombra.get_rect(topleft=(519,508))
+
 
 # VOU TENTAR COLOCAR O JOGO A PARTIR DAQUI :)
 
@@ -210,7 +230,21 @@ while rodando:
             # # o collidepoint verifica se o mouse está sobre o botão.
             # #ele tbm evita ter que ficar fazendo conta da posição do mouse :) 
             # # Eduardo, aqui que a gnt vai ter que fazer o nosso jogo msm, né? eu coloquei só o botão de jgr. Acho bom fazer o jogo em um outro arquivo e depois, só passar pra cá
-            if estado_jogo == "MENU":
+    
+            if estado_jogo == "MENU2":
+                if botao_menu_teste.collidepoint(evento.pos):
+            # Só muda a fase aqui, quando o botão for clicado!
+                    if usando == fase2:
+                        usando = fase3
+                    elif usando == fase3:
+                        usando = fase4
+                    elif usando == fase4:
+                        usando = fase5
+                    
+                    texto_fase = font.render(usando, True, (215, 238, 244))
+                    texto_fase_sombra = font.render(usando, True, (80, 123, 70))
+
+            if estado_jogo == "MENU" or estado_jogo == "MENU2":
                 if botao_menu_teste.collidepoint(evento.pos): 
                     estado_jogo = "COUNTDOWN"
                     contagem_final = time.time()
@@ -225,6 +259,7 @@ while rodando:
                     armazenar_tiro.clear()
                     armazenar_tiro_boss.clear()
                     posicao_y_vitoria = 800
+                    
             elif estado_jogo == "JOGANDO":
                 if evento.button == 1:
                     if var_muni == 1:
@@ -255,12 +290,22 @@ while rodando:
     if estado_jogo == "MENU":
         tela.fill((200, 200, 200))
         tela.blit(imagem, (0,0))
-        pygame.draw.rect(tela, cor_botao_menu_teste, botao_menu_teste) 
-        #Man se quiser ver o texto sem o sistema de colisão
-        #do mouse é só tirar essa linha 
-        # e o hitbox funciona ainda rs
+        pygame.draw.rect(tela, cor_botao_menu_teste, botao_menu_teste)
+
         tela.blit(texto_sombra, texto_rect_sombra) 
         tela.blit(texto_surface_texto_frente, texto_rect)
+
+    elif estado_jogo == "MENU2":
+        tela.fill((200, 200, 200))
+        tela.blit(imagem, (0,0))
+        pygame.draw.rect(tela, cor_botao_menu_teste, botao_menu_teste)
+
+        tela.blit(texto_sombra2, texto_rect_sombra2) 
+        tela.blit(texto_surface_texto_frente2, texto_rect2)
+
+        tela.blit(texto_fase_sombra, texto_rect_fase_sombra) 
+        tela.blit(texto_fase, texto_rect_fase)
+
     elif estado_jogo == "COUNTDOWN":
             tela.blit(imagem_fundo, (0,0))
             grupo_jogador.update(player_rect.topleft, virado_para_esquerda, pulando) #draw/upd
@@ -272,16 +317,19 @@ while rodando:
             overlay.fill((0,0,0))
             tela.blit(overlay, (0,0))
 
+
             tempo_atual = time.time()
             if tempo_atual - contagem_final >= 1.0:
                 contagem -= 1
                 contagem_final = tempo_atual
+
             if contagem > 0:
                 texto_num = fonte_contagem.render(str(contagem),True,(255,255,255))
                 rect_num = texto_num.get_rect(center=(600,400))
                 tela.blit(texto_num,rect_num)
             else:
                 estado_jogo = "JOGANDO"
+                
     elif estado_jogo == "JOGANDO":
         teclas = pygame.key.get_pressed()
         
@@ -355,7 +403,10 @@ while rodando:
         if vida_teste_5 >= 10: #alterar vida do boss
             print("MOGOU A IA BETA")  #linha da alteração da vida 
             tempo_inicio_vitoria = time.time()
-            estado_jogo = "VITORIA"
+            if modo_vitoria == 1:
+                estado_jogo = "MENU2"
+            elif modo_vitoria == 2:
+                estado_jogo = "VITORIA"
 
 
         
@@ -373,8 +424,11 @@ while rodando:
         if tempo_atual - tempo_ultimo_tiro_robo >= intervalo_dos_tiro:
             robo.frames_ataque_restante = 10
         
-        barravida_player(vida_player, 20, 20)
-        barravida_boss(vida_teste_5, 780,20)
+        barravida_player(vida_player, 20, 40)
+        barravida_boss(vida_teste_5, 780, 40)
+        if usando == fase5:
+            modo_vitoria += 1
+
     elif estado_jogo == "VITORIA":
         tela.blit(imagem_fundo, (0,0))
         grupo_jogador.draw(tela)
@@ -388,11 +442,13 @@ while rodando:
             txt_parabens = fonte_vitoria.render("PARABÉNS!",True,(255, 255, 255)) 
             rect_parabens = txt_parabens.get_rect(center=(600, 400)) 
             tela.blit(txt_parabens,rect_parabens)
+
         elif 3.0 <= tempo_passado <= 6.0:
             progresso_subida = (tempo_passado - 3.0) / 3.0
             posicao_y_vitoria = 1100 - (750 *progresso_subida)
             rect_vitoria = imagem_vitoria.get_rect(center=(600,int(posicao_y_vitoria)))
             tela.blit(imagem_vitoria,rect_vitoria)
+
         elif 6.0 < tempo_passado <10.0:
             rect_vitoria = imagem_vitoria.get_rect(center=(600,400))
             tela.blit(imagem_vitoria,rect_vitoria)

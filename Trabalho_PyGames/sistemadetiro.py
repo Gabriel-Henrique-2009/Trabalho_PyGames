@@ -39,6 +39,9 @@ var_muni = 1
 temposs = 0
 carregando_tiro = False
 
+tempo_ultimo_tiro_player = 0
+intervalo_tiro_player = 1.2
+
 
 #sistema de atk do boss 
 armazenar_tiro_boss = []
@@ -51,7 +54,7 @@ vida_boss_max = 2 #VIDA BOSS
 vida_teste_5 = 0
 ###
 
-imagem = pygame.image.load("unnamed.jpg")
+imagem = pygame.image.load("unnamed.png")
 imagem = pygame.transform.scale(imagem, (1200, 800))
 imagem = imagem.convert()
 #essa linha tava conflitando com a imagem 
@@ -84,6 +87,14 @@ texto_rect_fase = texto_fase.get_rect(topleft=(516, 505))
 texto_fase_sombra = font.render(usando, True, (80, 123, 70))
 estado_jogo = "MENU"
 texto_rect_fase_sombra = texto_fase_sombra.get_rect(topleft=(519,508))
+
+
+texto_gameover_titulo = fonte_contagem.render("Você perdeu", True, (255, 0, 0))
+texto_rect_gameover_titulo = texto_gameover_titulo.get_rect(center=(600, 300))
+texto_retry = font.render("Tentar Novamente", True, (215, 238, 244))
+texto_rect_retry = texto_retry.get_rect(center=(616, 508))
+texto_retry_sombra = font.render("Tentar Novamente", True, (80, 123, 70))
+texto_rect_retry_sombra = texto_retry_sombra.get_rect(center=(619, 511))
 
 
 # VOU TENTAR COLOCAR O JOGO A PARTIR DAQUI :)
@@ -132,33 +143,39 @@ class jogador(pygame.sprite.Sprite):
         self.image = pygame.transform.flip(imagem_atual,self.esquerda,False)
 
 class boss(pygame.sprite.Sprite):
-    def __init__(self,img_atk_boss, img_base_boss):
+    def __init__(self,img_base_boss, img_atk_boss):
        super().__init__()
-       self.frames_idle = [img_atk_boss,img_base_boss]
+    # 
+       self.img_idle = img_base_boss
+       self.img_atk = img_atk_boss
+       self.image = self.img_idle
        self.index_animacao = 0
-       self.image = self.frames_idle[self.index_animacao]
+       self.frames_atk_total = 30
        self.rect = self.image.get_rect()
-       self.frames_ataque_restante = 0
-       self.velocidade_animacao = 0.02 #ajuste de velocidade da animação IMPORTANTE 
-       self.esquerda = False
-       self.disparou = False 
-    def update(self,posicao_do_rect):
+       self.atacando = False
+       self.frame_atk = 0
+       self.disparo_feito = False
+       self.ultimo_ataque = 0
+    def update(self,posicao_do_rect,intervalo_tiro):
         self.rect.topleft = posicao_do_rect
+        agora = time.time()
         
-        if self.frames_ataque_restante > 0:
-            imagem_atual = self.frames_idle[1]
-            self.frames_ataque_restante -= 1
-            if self.frames_ataque_restante == 10:
-                self.disparou = True
-            else:
-                self.disparou = False
+        if not self.atacando and agora - self.ultimo_ataque >= intervalo_tiro:
+            self.atacando = True
+            self.frame_atk = 0
+            self.ultimo_ataque = agora
+            self.disparo_feito = False
+        if self.atacando:
+            self.image = self.img_atk
+            self.frame_atk += 1
+            if self.frame_atk == 15 and not self.disparo_feito:
+                self.disparo_feito = True
+                return True
+            if self.frame_atk >= self.frames_atk_total:
+                self.atacando = False
         else:
-            self.index_animacao += self.velocidade_animacao
-            if self.index_animacao >= len(self.frames_idle):
-                self.index_animacao = 0
-            imagem_atual = self.frames_idle[int(self.index_animacao)]
-            self.disparou = False
-        self.image = pygame.transform.flip(imagem_atual,self.esquerda,False)
+            self.image = self.img_idle
+        return False
 
 def barravida_player (vida, x, y):
     proporcao = vida/3
@@ -167,8 +184,9 @@ def barravida_player (vida, x, y):
     pygame.draw.rect(tela, verde, (x, y, 400 * proporcao, 30))
     return
 
-def barravida_boss (vida, x, y):
-    proporcao = (10 - vida) / 10
+def barravida_boss (vida_atual, vida_maxima, x, y):
+    # Calcula a proporção baseada na vida atual em relação à vida máxima definida
+    proporcao = (vida_maxima - vida_atual) / vida_maxima
     proporcao = max(0, min(proporcao, 1))
     largura_verde = 400 * proporcao
     pygame.draw.rect(tela, branco, (x-2, y-2, 404, 34))
@@ -223,6 +241,7 @@ virado_para_esquerda = False
 #frames = 0
 # testando as sprites da aula, fala ai oq tu achou man
 
+robo.rect.topleft = enemy_rect.topleft
 
 
 while rodando:
@@ -235,18 +254,13 @@ while rodando:
             # #ele tbm evita ter que ficar fazendo conta da posição do mouse :) 
             # # Eduardo, aqui que a gnt vai ter que fazer o nosso jogo msm, né? eu coloquei só o botão de jgr. Acho bom fazer o jogo em um outro arquivo e depois, só passar pra cá
     
-            if estado_jogo in ["MENU","MENU2"]:
+            if estado_jogo in ["MENU","MENU2", "GAME_OVER"]:
                 if botao_menu_teste.collidepoint(evento.pos):
             # Só muda a fase aqui, quando o botão for clicado!
                #     if usando == fase2:
               #          usando = fase3
-               #     elif usando == fase3:
-               #         usando = fase4
                #     elif usando == fase4:
                #         usando = fase5
-                    estado_jogo = "COUNTDOWN"
-                    contagem_final = time.time()
-                    contagem = 3
                     estado_jogo = "COUNTDOWN"
                     contagem_final = time.time()
                     contagem = 3
@@ -263,32 +277,37 @@ while rodando:
 
                     texto_fase = font.render(usando, True, (215, 238, 244))
                     texto_fase_sombra = font.render(usando, True, (80, 123, 70))
+                    
             elif estado_jogo == "JOGANDO":
                 if evento.button == 1:
-                    if var_muni == 1:
-                        alexandre.frames_ataque_restante = 15 # velocidade do ataque(quando clica para atirar) IMPORTANTE
-                        novo_tiro_rect = imagem_tiro.get_rect(center=player_rect.center)
-                        direcao = -1 if virado_para_esquerda else 1 #logica de virar o tiro, com o script de antes eles(projeteis) iam somente para a direita  :)
-                        armazenar_tiro.append({"rect": novo_tiro_rect, "dire": direcao}) # aqui tá guardando as info
-                        var_muni -= 1
-                        temposs = time.time()
-                        carregando_tiro = True
+                    agora_tiro = time.time()
+                    if agora_tiro - tempo_ultimo_tiro_player >= intervalo_tiro_player:
+                        if var_muni > 0: # Ajustado para permitir tiros se houver munição
+                            tempo_ultimo_tiro_player = agora_tiro
+                            alexandre.frames_ataque_restante = 15 # velocidade do ataque(quando clica para atirar) IMPORTANTE
+                            novo_tiro_rect = imagem_tiro.get_rect(center=player_rect.center)
+                            direcao = -1 if virado_para_esquerda else 1 #logica de virar o tiro, com o script de antes eles(projeteis) iam somente para a direita  :)
+                            armazenar_tiro.append({"rect": novo_tiro_rect, "dire": direcao}) # aqui tá guardando as info
+                            var_muni -= 1
+                            if var_muni <= 5: # Isso estava na sua lógica original
+                                outr = 5
+                                var_muni += 5
+                                print("somou")
 
                     if var_muni == 0 and not carregando_tiro:
                         temposs = time.time()
                         carregando_tiro = True
 
-                    if carregando_tiro and time.time() - temposs >= 1.0:
-                        var_muni += 1
-                        carregando_tiro = False
-                        print("DEMOROU TROPINHAAAAAAA")
-
-                  #  frames = 10
-            
         if evento.type == pygame.KEYDOWN:
             if evento.key == pygame.K_SPACE and not pulando and estado_jogo == "JOGANDO":
                 player_velocidade_y = velocidade_pulo
                 pulando = True
+
+    if estado_jogo == "JOGANDO" and carregando_tiro:
+        if time.time() - temposs >= 1.0:
+            var_muni += 1
+            carregando_tiro = False
+            print("DEMOROU TROPINHAAAAAAA")
 
     if estado_jogo == "MENU":
         tela.fill((200, 200, 200))
@@ -309,11 +328,29 @@ while rodando:
         tela.blit(texto_fase_sombra, texto_rect_fase_sombra) 
         tela.blit(texto_fase, texto_rect_fase)
 
+    elif estado_jogo == "GAME_OVER":
+        tela.blit(imagem_fundo, (0,0))
+        grupo_jogador.draw(tela)    
+        grupo_boss.draw(tela)
+        barravida_player(vida_player,20, 40)
+        barravida_boss(vida_teste_5,vida_boss_max,780,40)
+
+        overlay = pygame.Surface((1200,800))
+        overlay.set_alpha(150)
+        overlay.fill((0,0,0))
+        tela.blit(overlay, (0,0))
+
+        tela.blit(texto_gameover_titulo,texto_rect_gameover_titulo)
+    
+        tela.blit(texto_retry_sombra,texto_rect_retry_sombra)
+        tela.blit(texto_retry,texto_rect_retry)
+
     elif estado_jogo == "COUNTDOWN":
             tela.blit(imagem_fundo, (0,0))
             grupo_jogador.update(player_rect.topleft, virado_para_esquerda, pulando) #draw/upd
             grupo_jogador.draw(tela)    
-            tela.blit(imagem_robo,enemy_rect)
+            grupo_boss.draw(tela)
+
 
             overlay = pygame.Surface((1200,800))
             overlay.set_alpha(150)
@@ -337,16 +374,13 @@ while rodando:
         teclas = pygame.key.get_pressed()
         
         tempo_atual = time.time()
-        if tempo_atual - tempo_ultimo_tiro_robo >= intervalo_dos_tiro:
-            novo_tiro_robo_rect = imagem_atk_chatgpt.get_rect(center=enemy_rect.center)
-            robo.frames_ataque_restante = 30
-            armazenar_tiro_boss.append(novo_tiro_robo_rect)
-            tempo_ultimo_tiro_robo = tempo_atual
-        grupo_boss.update(enemy_rect.topleft)
-        if robo.disparou:
-            novo_tiro_rect = imagem_atk_chatgpt.get_rect(center=enemy_rect.center)
-            armazenar_tiro_boss.append(novo_tiro_robo_rect)
-            robo.disparou = False
+        disparo = robo.update(robo.rect.topleft,intervalo_dos_tiro)
+     
+   
+            
+        
+            
+        
         if teclas[pygame.K_a] or teclas[pygame.K_LEFT]:
             player_rect.x -= velocidade
             virado_para_esquerda = True
@@ -374,25 +408,30 @@ while rodando:
         #     print("colidiu com a ia e morreu 🙏😫💔")
         #     rodando = False
 
-        for tiro in armazenar_tiro:
-            tiro["rect"].x += velocidade_tiro * tiro["dire"]
-            if tiro["rect"].x > 1200 or tiro["rect"].x < 0:
-                armazenar_tiro.remove(tiro)
+        if disparo:
+            direcao = -1 if player_rect.centerx < robo.rect.centerx else 1
+            novo_tiro = imagem_atk_chatgpt.get_rect(center=robo.rect.center)
+            armazenar_tiro_boss.append({"rect": novo_tiro,"dire": direcao})
 
-            elif tiro["rect"].colliderect(enemy_rect):
+        for tiro in armazenar_tiro[:]:
+            tiro["rect"].x += velocidade_tiro * tiro["dire"]
+            if tiro["rect"].colliderect(robo.rect):
                 armazenar_tiro.remove(tiro)
                 vida_teste_5 += 1
-                print("OMYGODE VC ACERTOU O FUKING ROBO")
-        for tiro2 in armazenar_tiro_boss:
-            tiro2.x -= velocidade_tiro_boss
-            if tiro2.right < 0:
-                armazenar_tiro_boss.remove(tiro2)
-            elif tiro2.colliderect(player_rect):
-                armazenar_tiro_boss.remove(tiro2)
+                print("Acertou o Boss!")
+            elif tiro["rect"].right < 0 or tiro["rect"].left > 1200:
+                armazenar_tiro.remove(tiro)
+        for tiro in armazenar_tiro_boss[:]:
+            rect_tiro = tiro["rect"]
+            rect_tiro.x += velocidade_tiro_boss * tiro["dire"]
+            if rect_tiro.right < 0 or rect_tiro.left > 1200:
+                armazenar_tiro_boss.remove(tiro)
+            elif rect_tiro.colliderect(player_rect):
+                armazenar_tiro_boss.remove(tiro)
                 if time.time() - tempo_imunidade_player > 1.0:
                     vida_player -= 1
                     tempo_imunidade_player = time.time()
-                    print(f"Vc tomou um tiro da IA sigma 🤣🤣, vidas restantes {vida_player}")
+                    print(f"VC tomou um tiro da IA sigma 🤣🤣, vidas restantes: {vida_player}")
         # if player_rect.colliderect(enemy_rect) and time.time() - tempo_imunidade_player:
         #     vida_player -= 1
         #     tempo_imunidade_player = time.time()
@@ -413,18 +452,22 @@ while rodando:
                     velocidade_tiro_boss = 8
                     intervalo_dos_tiro = 1.5
                     usando = fase2
+                    vida_boss_max = 5 # Exemplo de aumento de vida por fase
                 elif usando ==  fase2:
                     velocidade_tiro_boss = 12
                     intervalo_dos_tiro = 1.4
                     usando = fase3
+                    vida_boss_max = 8
                 elif usando == fase3:
                     velocidade_tiro_boss = 16
                     intervalo_dos_tiro = 1.3
                     usando = fase4
+                    vida_boss_max = 12
                 elif usando == fase4:
                     velocidade_tiro_boss = 18
                     intervalo_dos_tiro = 1.2
                     usando = fase5
+                    vida_boss_max = 20
 
                 texto_fase = font.render(usando,  True,(215,238,244))
                 texto_fase_sombra = font.render(usando,True,(80,123,70))
@@ -436,30 +479,29 @@ while rodando:
         if vida_player <= 0:
             print("VC foi mogado pela IA sigma 🤣🤣🤣")
             print("tenta dnv beta 🤦‍♂️")
-            estado_jogo = "MENU"
+            estado_jogo = "GAME_OVER"
         
         tela.blit(imagem_fundo, (0,0))
         for tiro in armazenar_tiro:
             tela.blit(imagem_tiro, tiro["rect"])
         for tiro2 in armazenar_tiro_boss:
-            tela.blit(imagem_atk_chatgpt, tiro2)
+            tela.blit(imagem_atk_chatgpt, tiro2["rect"])
 
         grupo_jogador.update(player_rect.topleft, virado_para_esquerda, pulando)
         grupo_jogador.draw(tela)    
 
-        grupo_boss.update(enemy_rect.topleft)
         grupo_boss.draw(tela)
-        if tempo_atual - tempo_ultimo_tiro_robo >= intervalo_dos_tiro:
-            robo.frames_ataque_restante = 10
+       
         
         barravida_player(vida_player, 20, 40)
-        barravida_boss(vida_teste_5, 780, 40)
+        barravida_boss(vida_teste_5, vida_boss_max, 780, 40) # Passando a variável vida_boss_max aqui
         
 
     elif estado_jogo == "VITORIA":
         tela.blit(imagem_fundo, (0,0))
         grupo_jogador.draw(tela)
-        tela.blit(imagem_robo,enemy_rect)
+        grupo_boss.draw(tela)
+
         overlay = pygame.Surface((1200,800))
         overlay.set_alpha(180)
         overlay.fill((0,0,0))

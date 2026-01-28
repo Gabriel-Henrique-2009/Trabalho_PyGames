@@ -11,7 +11,8 @@ rodando = True
 estado_jogo = "MENU"
 
 
-vermelho = (153, 0, 0)
+vermelho_fundo = (128, 36, 36)
+vermelho = (216, 0, 0)
 verde = (0, 153, 102)
 branco = (255, 255, 255)
 
@@ -45,8 +46,8 @@ velocidade_tiro_boss = 7
 imagem_atk_chatgpt = pygame.image.load("chatgptlogo.png").convert_alpha()
 imagem_atk_chatgpt = pygame.transform.scale(imagem_atk_chatgpt,(40, 40)) # deixei maior que o tiro do jogador para intimidar kkkkkkk
 tempo_ultimo_tiro_robo = 0
-intervalo_dos_tiro = 1.5 
-vida_boss_max = 1 #VIDA BOSS
+intervalo_dos_tiro = 1.5
+vida_boss_max = 2 #VIDA BOSS
 vida_teste_5 = 0
 ###
 
@@ -160,9 +161,9 @@ class boss(pygame.sprite.Sprite):
         self.image = pygame.transform.flip(imagem_atual,self.esquerda,False)
 
 def barravida_player (vida, x, y):
-    proporcao = vida/10
+    proporcao = vida/3
     pygame.draw.rect(tela, branco, (x-2, y-2, 404, 34))
-    pygame.draw.rect(tela, vermelho, (x, y, 400, 30))
+    pygame.draw.rect(tela, vermelho_fundo, (x, y, 400, 30))
     pygame.draw.rect(tela, verde, (x, y, 400 * proporcao, 30))
     return
 
@@ -171,9 +172,9 @@ def barravida_boss (vida, x, y):
     proporcao = max(0, min(proporcao, 1))
     largura_verde = 400 * proporcao
     pygame.draw.rect(tela, branco, (x-2, y-2, 404, 34))
-    pygame.draw.rect(tela, vermelho, (x, y, 400, 30))
+    pygame.draw.rect(tela, vermelho_fundo, (x, y, 400, 30))
     x_invertido = x + (400 - largura_verde)
-    pygame.draw.rect(tela, verde, (x_invertido, y, largura_verde, 30)) # Para a barra diminuir da esquerda para a direita
+    pygame.draw.rect(tela, vermelho, (x_invertido, y, largura_verde, 30)) # Para a barra diminuir da esquerda para a direita
     return
 
 
@@ -250,7 +251,7 @@ while rodando:
                     contagem_final = time.time()
                     contagem = 3
                     vida_teste_5 = 0
-                    vida_player = 10
+                    vida_player = 3
                     player_rect.x = 100
                     player_rect.y = 800 - player_rect.height
                     pulando = False
@@ -409,12 +410,20 @@ while rodando:
                 estado_jogo = "VITORIA"
             else:
                 if usando == fase1:
+                    velocidade_tiro_boss = 8
+                    intervalo_dos_tiro = 1.5
                     usando = fase2
                 elif usando ==  fase2:
+                    velocidade_tiro_boss = 12
+                    intervalo_dos_tiro = 1.4
                     usando = fase3
                 elif usando == fase3:
+                    velocidade_tiro_boss = 16
+                    intervalo_dos_tiro = 1.3
                     usando = fase4
                 elif usando == fase4:
+                    velocidade_tiro_boss = 18
+                    intervalo_dos_tiro = 1.2
                     usando = fase5
 
                 texto_fase = font.render(usando,  True,(215,238,244))

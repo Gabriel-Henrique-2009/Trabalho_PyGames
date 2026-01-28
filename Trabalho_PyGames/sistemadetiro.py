@@ -46,6 +46,8 @@ imagem_atk_chatgpt = pygame.image.load("chatgptlogo.png").convert_alpha()
 imagem_atk_chatgpt = pygame.transform.scale(imagem_atk_chatgpt,(40, 40)) # deixei maior que o tiro do jogador para intimidar kkkkkkk
 tempo_ultimo_tiro_robo = 0
 intervalo_dos_tiro = 1.5 
+vida_boss_max = 1 #VIDA BOSS
+vida_teste_5 = 0
 ###
 
 imagem = pygame.image.load("unnamed.jpg")
@@ -53,12 +55,12 @@ imagem = pygame.transform.scale(imagem, (1200, 800))
 imagem = imagem.convert()
 #essa linha tava conflitando com a imagem 
 #essa tbm 
-
+fase1 = "round 1"
 fase2 = "round 2"
 fase3 = "round 3"
 fase4 = "round 4"
 fase5 = "round 5"
-usando = fase2
+usando = fase1
 modo_vitoria = 1
 
 
@@ -79,6 +81,7 @@ texto_rect_sombra2 = texto_sombra2.get_rect(topleft=(495,458))
 texto_fase = font.render(usando, True, (215, 238, 244))
 texto_rect_fase = texto_fase.get_rect(topleft=(516, 505))
 texto_fase_sombra = font.render(usando, True, (80, 123, 70))
+estado_jogo = "MENU"
 texto_rect_fase_sombra = texto_fase_sombra.get_rect(topleft=(519,508))
 
 
@@ -231,21 +234,18 @@ while rodando:
             # #ele tbm evita ter que ficar fazendo conta da posição do mouse :) 
             # # Eduardo, aqui que a gnt vai ter que fazer o nosso jogo msm, né? eu coloquei só o botão de jgr. Acho bom fazer o jogo em um outro arquivo e depois, só passar pra cá
     
-            if estado_jogo == "MENU2":
+            if estado_jogo in ["MENU","MENU2"]:
                 if botao_menu_teste.collidepoint(evento.pos):
             # Só muda a fase aqui, quando o botão for clicado!
-                    if usando == fase2:
-                        usando = fase3
-                    elif usando == fase3:
-                        usando = fase4
-                    elif usando == fase4:
-                        usando = fase5
-                    
-                    texto_fase = font.render(usando, True, (215, 238, 244))
-                    texto_fase_sombra = font.render(usando, True, (80, 123, 70))
-
-            if estado_jogo == "MENU" or estado_jogo == "MENU2":
-                if botao_menu_teste.collidepoint(evento.pos): 
+               #     if usando == fase2:
+              #          usando = fase3
+               #     elif usando == fase3:
+               #         usando = fase4
+               #     elif usando == fase4:
+               #         usando = fase5
+                    estado_jogo = "COUNTDOWN"
+                    contagem_final = time.time()
+                    contagem = 3
                     estado_jogo = "COUNTDOWN"
                     contagem_final = time.time()
                     contagem = 3
@@ -259,7 +259,9 @@ while rodando:
                     armazenar_tiro.clear()
                     armazenar_tiro_boss.clear()
                     posicao_y_vitoria = 800
-                    
+
+                    texto_fase = font.render(usando, True, (215, 238, 244))
+                    texto_fase_sombra = font.render(usando, True, (80, 123, 70))
             elif estado_jogo == "JOGANDO":
                 if evento.button == 1:
                     if var_muni == 1:
@@ -394,24 +396,38 @@ while rodando:
         #     vida_player -= 1
         #     tempo_imunidade_player = time.time()
 
+        
+
+      #  if usando == fase5:
+       #     modo_vitoria += 1
+            
+        # sistema de tiro ajustado 
+        if vida_teste_5 >= vida_boss_max: #alterar vida do boss # IF MALDITO PPRRT
+            print("MOGOU A IA BETA")  
+            if usando == fase5:
+                tempo_inicio_vitoria = time.time()
+                estado_jogo = "VITORIA"
+            else:
+                if usando == fase1:
+                    usando = fase2
+                elif usando ==  fase2:
+                    usando = fase3
+                elif usando == fase3:
+                    usando = fase4
+                elif usando == fase4:
+                    usando = fase5
+
+                texto_fase = font.render(usando,  True,(215,238,244))
+                texto_fase_sombra = font.render(usando,True,(80,123,70))
+                estado_jogo = "MENU2"
+            vida_teste_5 = 0
+            armazenar_tiro.clear()
+            armazenar_tiro_boss.clear()
+
         if vida_player <= 0:
             print("VC foi mogado pela IA sigma 🤣🤣🤣")
             print("tenta dnv beta 🤦‍♂️")
             estado_jogo = "MENU"
-
-        if usando == fase5:
-            modo_vitoria += 1
-            
-        # sistema de tiro ajustado 
-        if vida_teste_5 >= 10: #alterar vida do boss
-            print("MOGOU A IA BETA")  #linha da alteração da vida 
-            tempo_inicio_vitoria = time.time()
-            if modo_vitoria == 1:
-                estado_jogo = "MENU2"
-            elif modo_vitoria == 2:
-                estado_jogo = "VITORIA"
-
-
         
         tela.blit(imagem_fundo, (0,0))
         for tiro in armazenar_tiro:
@@ -456,7 +472,9 @@ while rodando:
             tela.blit(imagem_vitoria,rect_vitoria)
 
         if tempo_passado >= 10.0:
-            estado_jogo = "MENU"        
+            estado_jogo = "MENU"  
+            usando = fase1     
+            vida_teste_5 = 0
 
     pygame.display.update()
     clock.tick(60)
